@@ -54,7 +54,11 @@ export function FarmProvider({ children }) {
   const joinFarm = async (inviteCode) => {
     const { data, error } = await supabase.rpc('join_farm_by_invite_code', { p_invite_code: inviteCode })
     if (error) throw error
-    if (data.error) throw new Error(data.error)
+    const msgMap = {
+      invite_code_not_found: '邀請碼不存在',
+      already_member: '您已是此農場成員',
+    }
+    if (data.error) throw new Error(msgMap[data.error] || data.error)
     await loadFarms()
     return data
   }
