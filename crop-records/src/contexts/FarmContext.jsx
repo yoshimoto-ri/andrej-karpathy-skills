@@ -15,6 +15,7 @@ export function FarmProvider({ children }) {
 
   const loadFarms = useCallback(async () => {
     if (!user) { setFarms([]); setActiveFarm(null); setLoading(false); return }
+    await supabase.from('profiles').upsert({ id: user.id, email: user.email }, { onConflict: 'id' })
     const { data } = await supabase
       .from('farm_members')
       .select('farms(*), role')
