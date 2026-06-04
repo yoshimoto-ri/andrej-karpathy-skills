@@ -15,6 +15,7 @@ export function FarmProvider({ children }) {
 
   const loadFarms = useCallback(async () => {
     if (!user) { setFarms([]); setActiveFarm(null); setLoading(false); return }
+    await supabase.from('profiles').upsert({ id: user.id, email: user.email }, { onConflict: 'id' })
     const { data } = await supabase
       .from('farm_members')
       .select('farms(*), role')
@@ -56,7 +57,11 @@ export function FarmProvider({ children }) {
   const joinFarm = async (inviteCode) => {
     const { data, error } = await supabase.rpc('join_farm_by_invite_code', { p_invite_code: inviteCode })
     if (error) throw error
-    if (data.error) throw new Error(data.error)
+    const msgMap = {
+      invite_code_not_found: '邀請碼不存在',
+      already_member: '您已是此農場成員',
+    }
+    if (data.error) throw new Error(msgMap[data.error] || data.error)
     await loadFarms()
     return data
   }

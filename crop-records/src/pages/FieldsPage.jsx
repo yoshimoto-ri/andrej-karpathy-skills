@@ -105,7 +105,8 @@ function CropForm({ fields, onSubmit, onCancel }) {
 }
 
 export default function FieldsPage() {
-  const { fields, crops, createField, updateField, deleteField, createCrop, updateCrop } = useFarm()
+  const { fields, crops, activeFarm, createField, updateField, deleteField, createCrop, updateCrop } = useFarm()
+  const isOwner = activeFarm?.myRole === 'owner'
   const [modal, setModal] = useState(null) // null | {type: 'field'|'crop'|'editField', data?}
 
   const handleHarvestCrop = async (crop) => {
@@ -154,7 +155,7 @@ export default function FieldsPage() {
                 <div className="flex gap-1">
                   <button onClick={() => setModal({ type: 'editField', data: field })}
                     className="text-xs text-gray-400 px-2 py-1">編輯</button>
-                  {activeCrops.length === 0 && (
+                  {isOwner && activeCrops.length === 0 && (
                     <button onClick={() => deleteField(field.id)}
                       className="text-xs text-red-400 px-2 py-1">刪除</button>
                   )}

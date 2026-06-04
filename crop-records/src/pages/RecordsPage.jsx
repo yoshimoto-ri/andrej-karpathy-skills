@@ -8,7 +8,7 @@ import { useFarm } from '../contexts/FarmContext'
 
 const ACTIVITY_TYPES = ['整地', '播種', '定植', '施肥', '追肥', '用藥', '病蟲害', '灌溉', '採收', '其他']
 
-function RecordDetail({ record, onEdit, onDelete }) {
+function RecordDetail({ record, onEdit, onDelete, canEdit, canDelete }) {
   return (
     <div className="p-4 flex flex-col gap-4">
       <div className="bg-white rounded-2xl p-4 flex flex-col gap-3">
@@ -18,8 +18,8 @@ function RecordDetail({ record, onEdit, onDelete }) {
             <p className="text-sm text-gray-500">{record.record_date} · {record.weather !== '不記錄' ? record.weather : ''}</p>
           </div>
           <div className="flex gap-2">
-            <button onClick={onEdit} className="text-sm text-green-600 px-3 py-1.5 border border-green-600 rounded-lg">編輯</button>
-            <button onClick={onDelete} className="text-sm text-red-500 px-3 py-1.5 border border-red-300 rounded-lg">刪除</button>
+            {canEdit && <button onClick={onEdit} className="text-sm text-green-600 px-3 py-1.5 border border-green-600 rounded-lg">編輯</button>}
+            {canDelete && <button onClick={onDelete} className="text-sm text-red-500 px-3 py-1.5 border border-red-300 rounded-lg">刪除</button>}
           </div>
         </div>
 
@@ -96,6 +96,10 @@ export function RecordDetailPage() {
   }, [activeFarm, fetchRecords])
 
   const record = records.find(r => r.id === id)
+  const isOwner = activeFarm?.myRole === 'owner'
+  const isRecorder = record?.recorded_by === user?.id
+  const canEdit = isOwner || isRecorder
+  const canDelete = isOwner || isRecorder
 
   const handleDelete = async () => {
     if (!confirm('確定要刪除此農事記錄？')) return
@@ -120,6 +124,8 @@ export function RecordDetailPage() {
           record={record}
           onEdit={() => setEditing(true)}
           onDelete={handleDelete}
+          canEdit={canEdit}
+          canDelete={canDelete}
         />
       )}
     </div>
