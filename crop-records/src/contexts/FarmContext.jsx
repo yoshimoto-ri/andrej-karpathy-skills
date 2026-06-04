@@ -40,7 +40,9 @@ export function FarmProvider({ children }) {
     setMembers(membersRes.data || [])
   }, [activeFarm])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadFarms() }, [loadFarms])
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadFarmData() }, [loadFarmData])
 
   const createFarm = async (name, address) => {
@@ -111,4 +113,5 @@ export function FarmProvider({ children }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useFarm = () => useContext(FarmContext)

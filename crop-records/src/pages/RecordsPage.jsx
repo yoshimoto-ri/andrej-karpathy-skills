@@ -5,7 +5,6 @@ import RecordCard from '../components/records/RecordCard'
 import ActivityForm from '../components/records/ActivityForm'
 import { useRecords } from '../hooks/useRecords'
 import { useFarm } from '../contexts/FarmContext'
-import { useAuth } from '../contexts/AuthContext'
 
 const ACTIVITY_TYPES = ['整地', '播種', '定植', '施肥', '追肥', '用藥', '病蟲害', '灌溉', '採收', '其他']
 
@@ -90,12 +89,11 @@ export function RecordDetailPage() {
   const navigate = useNavigate()
   const { records, loading, fetchRecords, updateRecord, deleteRecord } = useRecords()
   const { activeFarm } = useFarm()
-  const { user } = useAuth()
   const [editing, setEditing] = useState(false)
 
   useEffect(() => {
     if (activeFarm) fetchRecords()
-  }, [activeFarm])
+  }, [activeFarm, fetchRecords])
 
   const record = records.find(r => r.id === id)
 
@@ -130,14 +128,14 @@ export function RecordDetailPage() {
 
 export default function RecordsPage() {
   const navigate = useNavigate()
-  const { activeFarm, fields, crops } = useFarm()
+  const { activeFarm, fields } = useFarm()
   const { records, loading, fetchRecords } = useRecords()
   const [filters, setFilters] = useState({ field_id: '', activity_type: '', date_from: '', date_to: '' })
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     if (activeFarm) fetchRecords(filters)
-  }, [activeFarm, filters])
+  }, [activeFarm, filters, fetchRecords])
 
   const setFilter = (k, v) => setFilters(prev => ({ ...prev, [k]: v }))
 

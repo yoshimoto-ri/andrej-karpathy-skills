@@ -5,7 +5,7 @@ import { useFarm } from '../contexts/FarmContext'
 const STATUS_LABEL = { active: '生長中', harvested: '已採收' }
 const STATUS_COLOR = { active: 'text-green-600 bg-green-50', harvested: 'text-gray-500 bg-gray-100' }
 
-function FieldForm({ initial, fields, onSubmit, onCancel }) {
+function FieldForm({ initial, onSubmit, onCancel }) {
   const [name, setName] = useState(initial?.name || '')
   const [area, setArea] = useState(initial?.area || '')
   const [location, setLocation] = useState(initial?.location || '')

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { useFarm } from '../contexts/FarmContext'
@@ -8,9 +8,8 @@ export function useRecords() {
   const { activeFarm } = useFarm()
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(false)
-  // Store activeFarm in a ref so fetchRecords stays stable across renders
   const farmRef = useRef(activeFarm)
-  farmRef.current = activeFarm
+  useEffect(() => { farmRef.current = activeFarm }, [activeFarm])
 
   const fetchRecords = useCallback(async (filters = {}) => {
     if (!farmRef.current) return
@@ -38,7 +37,6 @@ export function useRecords() {
     if (!error) setRecords(data || [])
     setLoading(false)
     return data
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const createRecord = async (recordData) => {
