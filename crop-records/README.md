@@ -9,6 +9,8 @@
 - **多人協作**：農場負責人可產生邀請碼邀請成員
 - **PDF 匯出**：產生農場生產履歷報告（符合農委會友善耕作記錄格式）
 - **PWA**：可加入手機桌面、離線通知
+- **自動化系統對接**：溫室自動化控制系統（澆灌、施肥、抽風）可透過 API 自動寫入農事記錄與產銷履歷 Google 試算表，詳見 [integration/README.md](integration/README.md)
+- **Android APP**：以 Capacitor 打包，GitHub Actions 自動產出 APK（`.github/workflows/android-apk.yml`）
 
 ## 快速開始
 

@@ -27,6 +27,7 @@ export function useRecords() {
       .order('record_date', { ascending: false })
       .order('created_at', { ascending: false })
 
+    if (filters.id) query = query.eq('id', filters.id)
     if (filters.field_id) query = query.eq('field_id', filters.field_id)
     if (filters.crop_id) query = query.eq('crop_id', filters.crop_id)
     if (filters.activity_type) query = query.eq('activity_type', filters.activity_type)

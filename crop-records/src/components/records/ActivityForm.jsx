@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useFarm } from '../../contexts/FarmContext'
+import { ACTIVITY_TYPES } from '../../lib/constants'
 
-const ACTIVITY_TYPES = ['整地', '播種', '定植', '施肥', '追肥', '用藥', '病蟲害', '灌溉', '採收', '其他']
 const WEATHERS = ['晴', '多雲', '陰', '雨', '不記錄']
 const UNITS = ['公升', '毫升', '公斤', '公克', '台斤', '瓶', '包', '袋', '次']
 

@@ -50,7 +50,7 @@ export default function RecordCard({ record, onClick }) {
         </div>
         <div className="text-right shrink-0">
           <p className="text-sm font-medium text-gray-700">{record.record_date}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{record.recorder?.email?.split('@')[0]}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{record.source === 'automation' ? '🤖 自動化' : record.recorder?.email?.split('@')[0]}</p>
         </div>
       </div>
     </div>
