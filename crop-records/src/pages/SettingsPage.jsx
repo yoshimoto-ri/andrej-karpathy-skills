@@ -9,12 +9,17 @@ const AUTOMATION_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/a
 function AutomationSection({ farmId }) {
   const [config, setConfig] = useState(null)
   const [webhookUrl, setWebhookUrl] = useState('')
+  const [geminiKey, setGeminiKey] = useState('')
   const [busy, setBusy] = useState(false)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     supabase.from('farm_automation').select('*').eq('farm_id', farmId).maybeSingle()
-      .then(({ data }) => { setConfig(data); setWebhookUrl(data?.sheet_webhook_url || '') })
+      .then(({ data }) => {
+        setConfig(data)
+        setWebhookUrl(data?.sheet_webhook_url || '')
+        setGeminiKey(data?.gemini_api_key || '')
+      })
   }, [farmId])
 
   const enable = async () => {
@@ -27,11 +32,14 @@ function AutomationSection({ farmId }) {
     finally { setBusy(false) }
   }
 
-  const saveWebhook = async () => {
+  const saveSettings = async () => {
     setBusy(true)
     try {
       const { error } = await supabase.from('farm_automation')
-        .update({ sheet_webhook_url: webhookUrl.trim() || null }).eq('farm_id', farmId)
+        .update({
+          sheet_webhook_url: webhookUrl.trim() || null,
+          gemini_api_key: geminiKey.trim() || null,
+        }).eq('farm_id', farmId)
       if (error) throw error
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -64,11 +72,17 @@ function AutomationSection({ farmId }) {
             <input value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)}
               placeholder="https://script.google.com/macros/s/.../exec"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-green-500" />
-            <button onClick={saveWebhook} disabled={busy}
+          </div>
+          <div>
+            <p className="text-gray-500 mb-1">Gemini API 金鑰（病蟲害 AI 辨識用，至 aistudio.google.com 免費取得）</p>
+            <input value={geminiKey} onChange={e => setGeminiKey(e.target.value)}
+              placeholder="AIza..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-green-500" />
+            <button onClick={saveSettings} disabled={busy}
               className={`mt-2 w-full rounded-lg py-2 text-sm font-medium disabled:opacity-50 ${
                 saved ? 'bg-green-100 text-green-700' : 'bg-green-600 text-white'
               }`}>
-              {saved ? '已儲存' : '儲存網址'}
+              {saved ? '已儲存' : '儲存設定'}
             </button>
           </div>
         </div>

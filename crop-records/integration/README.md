@@ -88,6 +88,21 @@ curl -X POST https://qvlsfudvhwjwrkgmxxgp.supabase.co/functions/v1/automation-in
 錯誤時回傳對應 HTTP 狀態碼與 `{ "error": "..." }`：
 `401` 金鑰錯誤、`400` 格式錯誤、`404` 找不到田區。
 
+## 病蟲害照片與 AI 辨識（APP 內建功能）
+
+新增農事記錄選「病蟲害」類型時，可拍照或上傳照片：
+
+1. 照片存入 Supabase Storage（APP 內顯示）
+2. 自動備份到你的 Google 雲端硬碟「農事照片備份」資料夾（經 Apps Script）
+3. 按「AI 病蟲害辨識」由 Gemini（gemini-2.5-flash）分析照片，結果自動填入作業說明
+4. 記錄儲存後，自動寫一列到試算表「作物觀察與病蟲害紀錄」（含照片雲端連結）
+
+啟用條件（農場負責人在「設定 → 自動化系統對接」完成）：
+- Apps Script 部署網址（照片備份與試算表寫入）。更新 Apps Script 程式後，
+  記得「部署 → 管理部署作業 → 編輯 → 新版本」並重新授權（新增了雲端硬碟權限）
+- Gemini API 金鑰（至 [aistudio.google.com](https://aistudio.google.com) 免費取得）。
+  金鑰只存在伺服器端資料庫，僅負責人可讀寫，農場成員與前端程式皆接觸不到
+
 ## 安全性說明
 
 - API 金鑰為 48 字元隨機字串，每農場一組，只有農場負責人可在 APP 內查看與重新產生（刪除後重建即可換新金鑰）。

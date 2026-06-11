@@ -36,6 +36,19 @@ function RecordDetail({ record, onEdit, onDelete }) {
           <row className="flex gap-2 text-sm"><span className="text-gray-400 w-16">記錄人</span><span>{record.source === 'automation' ? '🤖 自動化' : record.recorder?.email}</span></row>
         </div>
 
+        {record.photos?.length > 0 && (
+          <div className="border-t border-gray-100 pt-3">
+            <p className="text-sm font-medium text-gray-700 mb-2">照片</p>
+            <div className="flex flex-col gap-2">
+              {record.photos.map((p, i) => (
+                <a key={i} href={p.drive_link || p.url} target="_blank" rel="noreferrer">
+                  <img src={p.url} alt="記錄照片" className="rounded-xl w-full object-contain bg-gray-50" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         {record.materials?.length > 0 && (
           <div className="border-t border-gray-100 pt-3">
             <p className="text-sm font-medium text-gray-700 mb-2">使用資材</p>
