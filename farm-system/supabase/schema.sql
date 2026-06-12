@@ -373,7 +373,7 @@ create policy "profiles: admin can delete"
 do $$ declare t text;
 begin
   foreach t in array array[
-    'materials','fields','crop_types','contracts','crop_cycles'
+    'materials','fields','crop_types','contracts'
   ] loop
     execute format('
       create policy "%s: authenticated can read" on %s for select using (auth.uid() is not null);
@@ -383,6 +383,16 @@ begin
     ', t,t, t,t, t,t, t,t);
   end loop;
 end $$;
+
+-- ---- crop_cycles：定植/播種由田間作業員記錄 ----
+create policy "crop_cycles: authenticated can read"
+  on crop_cycles for select using (auth.uid() is not null);
+create policy "crop_cycles: field_worker or admin can insert"
+  on crop_cycles for insert with check (my_role() in ('field_worker','admin'));
+create policy "crop_cycles: field_worker or admin can update"
+  on crop_cycles for update using (my_role() in ('field_worker','admin'));
+create policy "crop_cycles: admin can delete"
+  on crop_cycles for delete using (is_admin());
 
 -- ---- material_purchases ----
 create policy "material_purchases: authenticated can read"
