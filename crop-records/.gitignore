@@ -11,6 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+
+# Capacitor（CI 建置時自動產生）
+android
+ios
 
 # Editor directories and files
 .vscode/*

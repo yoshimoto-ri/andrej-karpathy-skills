@@ -1,11 +1,30 @@
 import { useState } from 'react'
 import { useFarm } from '../../contexts/FarmContext'
+import { supabase } from '../../lib/supabase'
+import { ACTIVITY_TYPES } from '../../lib/constants'
 
-const ACTIVITY_TYPES = ['整地', '播種', '定植', '施肥', '追肥', '用藥', '病蟲害', '灌溉', '採收', '其他']
 const WEATHERS = ['晴', '多雲', '陰', '雨', '不記錄']
 const UNITS = ['公升', '毫升', '公斤', '公克', '台斤', '瓶', '包', '袋', '次']
 
 const today = () => new Date().toISOString().split('T')[0]
+
+// 壓縮照片（最長邊 1280px、JPEG 85%），減少上傳量與 AI 辨識成本
+async function compressToBase64(file) {
+  const img = await createImageBitmap(file)
+  const scale = Math.min(1, 1280 / Math.max(img.width, img.height))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(img.width * scale)
+  canvas.height = Math.round(img.height * scale)
+  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+  return canvas.toDataURL('image/jpeg', 0.85).split(',')[1]
+}
+
+async function callPestApi(body) {
+  const { data, error } = await supabase.functions.invoke('pest-diagnosis', { body })
+  if (error) throw new Error(error.message || 'AI 服務呼叫失敗')
+  if (data?.error) throw new Error(data.error)
+  return data
+}
 
 function MaterialRow({ item, index, onChange, onRemove }) {
   return (
@@ -34,7 +53,7 @@ function MaterialRow({ item, index, onChange, onRemove }) {
 }
 
 export default function ActivityForm({ initial = null, onSubmit, onCancel }) {
-  const { fields, crops } = useFarm()
+  const { activeFarm, fields, crops } = useFarm()
   const [data, setData] = useState({
     record_date: initial?.record_date || today(),
     field_id: initial?.field_id || fields[0]?.id || '',
@@ -47,10 +66,43 @@ export default function ActivityForm({ initial = null, onSubmit, onCancel }) {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // photo: { base64, preview, url, drive_link }（url 有值代表已上傳）
+  const [photo, setPhoto] = useState(null)
+  const [diagnosing, setDiagnosing] = useState(false)
 
   const set = (k, v) => setData(prev => ({ ...prev, [k]: v }))
 
   const fieldCrops = crops.filter(c => c.field_id === data.field_id && c.status === 'active')
+
+  const handlePhoto = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    try {
+      const base64 = await compressToBase64(file)
+      setPhoto({ base64, preview: `data:image/jpeg;base64,${base64}` })
+    } catch {
+      setError('照片讀取失敗，請改用其他照片')
+    }
+  }
+
+  const diagnose = async () => {
+    setDiagnosing(true); setError('')
+    try {
+      const crop = fieldCrops.find(c => c.id === data.crop_id)
+      const res = await callPestApi({
+        action: 'diagnose',
+        farm_id: activeFarm.id,
+        image_base64: photo.base64,
+        crop_name: crop?.name || '',
+      })
+      setPhoto(p => ({ ...p, url: res.photo_url, drive_link: res.drive_link }))
+      set('description', res.diagnosis)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setDiagnosing(false)
+    }
+  }
 
   const addMaterial = () => set('materials', [...data.materials, { name: '', quantity: '', unit: '公升' }])
   const updateMaterial = (i, k, v) => {
@@ -64,12 +116,34 @@ export default function ActivityForm({ initial = null, onSubmit, onCancel }) {
     e.preventDefault()
     setError(''); setLoading(true)
     try {
+      let photos = initial?.photos || []
+      if (photo) {
+        let { url, drive_link } = photo
+        if (!url) {
+          const res = await callPestApi({ action: 'upload', farm_id: activeFarm.id, image_base64: photo.base64 })
+          url = res.photo_url
+          drive_link = res.drive_link
+        }
+        photos = [{ url, drive_link }]
+      }
       const payload = {
         ...data,
         crop_id: data.crop_id || null,
         materials: data.materials.filter(m => m.name.trim()),
+        photos,
       }
       await onSubmit(payload)
+      // 病蟲害記錄補寫一列到試算表「作物觀察與病蟲害紀錄」（失敗不影響已儲存的記錄）
+      if (photo && data.activity_type === '病蟲害') {
+        callPestApi({
+          action: 'log',
+          farm_id: activeFarm.id,
+          record_date: data.record_date,
+          batch_id: fields.find(f => f.id === data.field_id)?.name || '',
+          description: data.description,
+          drive_link: photos[0]?.drive_link || photos[0]?.url || '',
+        }).catch(() => {})
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -123,6 +197,34 @@ export default function ActivityForm({ initial = null, onSubmit, onCancel }) {
           ))}
         </div>
       </div>
+
+      {/* Pest photo + AI diagnosis */}
+      {data.activity_type === '病蟲害' && (
+        <div>
+          <label className="label">病蟲害照片</label>
+          {photo ? (
+            <div className="flex flex-col gap-2">
+              <img src={photo.preview} alt="病蟲害照片" className="rounded-xl max-h-60 object-contain bg-gray-50" />
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setPhoto(null)}
+                  className="flex-1 border-2 border-gray-300 text-gray-600 rounded-xl py-2.5 text-sm font-medium">
+                  移除照片
+                </button>
+                <button type="button" onClick={diagnose} disabled={diagnosing}
+                  className="flex-1 bg-amber-500 text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-50">
+                  {diagnosing ? 'AI 辨識中...' : '🔍 AI 病蟲害辨識'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400">辨識結果會自動填入「作業說明」，可再修改；照片將備份至 Google 雲端硬碟並寫入產銷履歷試算表</p>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center gap-1 border-2 border-dashed border-gray-300 rounded-xl py-6 text-gray-400 text-sm cursor-pointer">
+              📷 拍照或選擇照片
+              <input type="file" accept="image/*" capture="environment" onChange={handlePhoto} className="hidden" />
+            </label>
+          )}
+        </div>
+      )}
 
       {/* Weather */}
       <div>

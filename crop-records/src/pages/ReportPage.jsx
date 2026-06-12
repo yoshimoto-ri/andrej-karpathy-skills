@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
 import Header from '../components/layout/Header'
 import { useFarm } from '../contexts/FarmContext'
 import { supabase } from '../lib/supabase'
@@ -41,7 +39,7 @@ export default function ReportPage() {
       if (fetchErr) throw fetchErr
       if (!records || records.length === 0) { setError('查詢範圍內沒有農事記錄'); setGenerating(false); return }
 
-      buildPdf(records)
+      await buildPdf(records)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -49,7 +47,12 @@ export default function ReportPage() {
     }
   }
 
-  const buildPdf = (records) => {
+  const buildPdf = async (records) => {
+    // PDF 函式庫體積大，僅在實際匯出時動態載入，減少 APP 啟動時的記憶體負擔
+    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ])
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
     // Load a CJK-compatible font — jsPDF ships with Helvetica only.

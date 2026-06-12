@@ -5,9 +5,7 @@ import RecordCard from '../components/records/RecordCard'
 import ActivityForm from '../components/records/ActivityForm'
 import { useRecords } from '../hooks/useRecords'
 import { useFarm } from '../contexts/FarmContext'
-import { useAuth } from '../contexts/AuthContext'
-
-const ACTIVITY_TYPES = ['整地', '播種', '定植', '施肥', '追肥', '用藥', '病蟲害', '灌溉', '採收', '其他']
+import { ACTIVITY_TYPES } from '../lib/constants'
 
 function RecordDetail({ record, onEdit, onDelete }) {
   return (
@@ -35,8 +33,21 @@ function RecordDetail({ record, onEdit, onDelete }) {
           {record.notes && (
             <row className="flex gap-2 text-sm"><span className="text-gray-400 w-16">備註</span><span className="flex-1">{record.notes}</span></row>
           )}
-          <row className="flex gap-2 text-sm"><span className="text-gray-400 w-16">記錄人</span><span>{record.recorder?.email}</span></row>
+          <row className="flex gap-2 text-sm"><span className="text-gray-400 w-16">記錄人</span><span>{record.source === 'automation' ? '🤖 自動化' : record.recorder?.email}</span></row>
         </div>
+
+        {record.photos?.length > 0 && (
+          <div className="border-t border-gray-100 pt-3">
+            <p className="text-sm font-medium text-gray-700 mb-2">照片</p>
+            <div className="flex flex-col gap-2">
+              {record.photos.map((p, i) => (
+                <a key={i} href={p.drive_link || p.url} target="_blank" rel="noreferrer">
+                  <img src={p.url} alt="記錄照片" className="rounded-xl w-full object-contain bg-gray-50" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         {record.materials?.length > 0 && (
           <div className="border-t border-gray-100 pt-3">
@@ -90,12 +101,11 @@ export function RecordDetailPage() {
   const navigate = useNavigate()
   const { records, loading, fetchRecords, updateRecord, deleteRecord } = useRecords()
   const { activeFarm } = useFarm()
-  const { user } = useAuth()
   const [editing, setEditing] = useState(false)
 
   useEffect(() => {
-    if (activeFarm) fetchRecords()
-  }, [activeFarm])
+    if (activeFarm) fetchRecords({ id })
+  }, [activeFarm, id])
 
   const record = records.find(r => r.id === id)
 
@@ -130,7 +140,7 @@ export function RecordDetailPage() {
 
 export default function RecordsPage() {
   const navigate = useNavigate()
-  const { activeFarm, fields, crops } = useFarm()
+  const { activeFarm, fields } = useFarm()
   const { records, loading, fetchRecords } = useRecords()
   const [filters, setFilters] = useState({ field_id: '', activity_type: '', date_from: '', date_to: '' })
   const [showFilters, setShowFilters] = useState(false)

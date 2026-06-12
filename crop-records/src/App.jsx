@@ -13,7 +13,7 @@ import SettingsPage from './pages/SettingsPage'
 
 function AppRoutes() {
   const { user, loading: authLoading } = useAuth()
-  const { farms, activeFarm, loading: farmLoading } = useFarm()
+  const { farms, loading: farmLoading } = useFarm()
 
   if (authLoading || farmLoading) {
     return (
@@ -46,7 +46,7 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AuthProvider>
         <FarmProvider>
           <AppRoutes />

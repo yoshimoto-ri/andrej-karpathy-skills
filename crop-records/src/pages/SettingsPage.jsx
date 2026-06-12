@@ -1,7 +1,95 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Header from '../components/layout/Header'
 import { useAuth } from '../contexts/AuthContext'
 import { useFarm } from '../contexts/FarmContext'
+import { supabase } from '../lib/supabase'
+
+const AUTOMATION_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/automation-ingest`
+
+function AutomationSection({ farmId }) {
+  const [config, setConfig] = useState(null)
+  const [webhookUrl, setWebhookUrl] = useState('')
+  const [geminiKey, setGeminiKey] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    supabase.from('farm_automation').select('*').eq('farm_id', farmId).maybeSingle()
+      .then(({ data }) => {
+        setConfig(data)
+        setWebhookUrl(data?.sheet_webhook_url || '')
+        setGeminiKey(data?.gemini_api_key || '')
+      })
+  }, [farmId])
+
+  const enable = async () => {
+    setBusy(true)
+    try {
+      const { data, error } = await supabase.from('farm_automation').insert({ farm_id: farmId }).select().single()
+      if (error) throw error
+      setConfig(data)
+    } catch (err) { alert(err.message) }
+    finally { setBusy(false) }
+  }
+
+  const saveSettings = async () => {
+    setBusy(true)
+    try {
+      const { error } = await supabase.from('farm_automation')
+        .update({
+          sheet_webhook_url: webhookUrl.trim() || null,
+          gemini_api_key: geminiKey.trim() || null,
+        }).eq('farm_id', farmId)
+      if (error) throw error
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) { alert(err.message) }
+    finally { setBusy(false) }
+  }
+
+  return (
+    <section className="bg-white rounded-2xl shadow-sm p-4">
+      <h2 className="font-bold text-gray-700 mb-1">自動化系統對接</h2>
+      <p className="text-xs text-gray-400 mb-3">供溫室自動化控制系統（澆灌、施肥、抽風等）自動寫入農事記錄與產銷履歷試算表</p>
+
+      {!config ? (
+        <button onClick={enable} disabled={busy}
+          className="w-full border-2 border-green-600 text-green-600 rounded-xl py-3 font-semibold disabled:opacity-50">
+          {busy ? '產生中...' : '產生 API 金鑰並啟用'}
+        </button>
+      ) : (
+        <div className="flex flex-col gap-3 text-sm">
+          <div>
+            <p className="text-gray-500 mb-1">API 端點</p>
+            <p className="font-mono text-xs bg-gray-50 rounded-lg p-2 break-all select-all">{AUTOMATION_ENDPOINT}</p>
+          </div>
+          <div>
+            <p className="text-gray-500 mb-1">API 金鑰（提供給自動化系統，請妥善保管）</p>
+            <p className="font-mono text-xs bg-gray-50 rounded-lg p-2 break-all select-all">{config.api_key}</p>
+          </div>
+          <div>
+            <p className="text-gray-500 mb-1">Google Sheet 寫入網址（Apps Script 部署網址）</p>
+            <input value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)}
+              placeholder="https://script.google.com/macros/s/.../exec"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-green-500" />
+          </div>
+          <div>
+            <p className="text-gray-500 mb-1">Gemini API 金鑰（病蟲害 AI 辨識用，至 aistudio.google.com 免費取得）</p>
+            <input value={geminiKey} onChange={e => setGeminiKey(e.target.value)}
+              placeholder="AIza..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-green-500" />
+            <button onClick={saveSettings} disabled={busy}
+              className={`mt-2 w-full rounded-lg py-2 text-sm font-medium disabled:opacity-50 ${
+                saved ? 'bg-green-100 text-green-700' : 'bg-green-600 text-white'
+              }`}>
+              {saved ? '已儲存' : '儲存設定'}
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth()
@@ -86,6 +174,9 @@ export default function SettingsPage() {
             )}
           </section>
         )}
+
+        {/* Automation integration (owner only) */}
+        {isOwner && activeFarm && <AutomationSection farmId={activeFarm.id} />}
 
         {/* Members */}
         {members.length > 0 && (
