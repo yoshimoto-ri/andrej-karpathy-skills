@@ -6,6 +6,6 @@
     "name": "forrestchang"
   },
   "license": "MIT",
-  "keywords": ["guidelines", "best-practices", "coding", "karpathy", "bazi", "chinese-astrology", "mingli"],
-  "skills": ["./skills/karpathy-guidelines", "./skills/bazi-mingli"]
+  "keywords": ["guidelines", "best-practices", "coding", "karpathy", "bazi", "chinese-astrology", "mingli", "crop-classification", "agriculture"],
+  "skills": ["./skills/karpathy-guidelines", "./skills/bazi-mingli", "./skills/crop-classification"]
 }

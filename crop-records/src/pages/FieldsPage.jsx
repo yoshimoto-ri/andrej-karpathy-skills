@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Header from '../components/layout/Header'
 import { useFarm } from '../contexts/FarmContext'
+import { lookupCrop, CROP_NAMES } from '../lib/cropLookup'
 
 const STATUS_LABEL = { active: '生長中', harvested: '已採收' }
 const STATUS_COLOR = { active: 'text-green-600 bg-green-50', harvested: 'text-gray-500 bg-gray-100' }
@@ -69,6 +70,8 @@ function CropForm({ fields, onSubmit, onCancel }) {
     finally { setLoading(false) }
   }
 
+  const classification = lookupCrop(name)
+
   return (
     <form onSubmit={submit} className="flex flex-col gap-4 p-4">
       <div>
@@ -79,7 +82,16 @@ function CropForm({ fields, onSubmit, onCancel }) {
       </div>
       <div>
         <label className="label">作物名稱 *</label>
-        <input value={name} onChange={e => setName(e.target.value)} required placeholder="例：水稻、番茄" className="input" />
+        <input value={name} onChange={e => setName(e.target.value)} required list="crop-names"
+          placeholder="例：水稻、番茄" className="input" />
+        <datalist id="crop-names">
+          {CROP_NAMES.map(n => <option key={n} value={n} />)}
+        </datalist>
+        {classification && (
+          <div className="mt-1.5 text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">
+            分類：{classification.paths.map(p => p.text).join('；')}
+          </div>
+        )}
       </div>
       <div>
         <label className="label">品種</label>
@@ -163,11 +175,14 @@ export default function FieldsPage() {
 
               {fieldCrops.length > 0 && (
                 <div className="border-t border-gray-100 divide-y divide-gray-50">
-                  {fieldCrops.map(crop => (
+                  {fieldCrops.map(crop => {
+                    const cls = lookupCrop(crop.name)
+                    return (
                     <div key={crop.id} className="px-4 py-3 flex items-center justify-between">
                       <div>
                         <span className="font-medium text-sm text-gray-700">{crop.name}</span>
                         {crop.variety && <span className="text-xs text-gray-400 ml-1">（{crop.variety}）</span>}
+                        {cls && <span className="text-xs text-green-700 bg-green-50 rounded px-1.5 py-0.5 ml-1">{cls.paths[0].cat1}</span>}
                         <div className="text-xs text-gray-400 mt-0.5">{crop.start_date} 種植</div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -182,7 +197,7 @@ export default function FieldsPage() {
                         )}
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               )}
             </div>
