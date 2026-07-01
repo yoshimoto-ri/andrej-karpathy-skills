@@ -192,8 +192,8 @@ export default function FieldsPage() {
 
       {/* Modals */}
       {modal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-end" onClick={() => setModal(null)}>
-          <div className="bg-white w-full rounded-t-3xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/40 z-[60] flex items-end" onClick={() => setModal(null)}>
+          <div className="bg-white w-full rounded-t-3xl max-h-[85vh] overflow-y-auto pb-6" onClick={e => e.stopPropagation()}>
             <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mt-3 mb-4" />
             <h3 className="text-center font-bold text-gray-800 mb-2 px-4">
               {modal.type === 'field' ? '新增田區' : modal.type === 'editField' ? '編輯田區' : '新增作物'}
