@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { FarmProvider, useFarm } from './contexts/FarmContext'
 import AuthPage from './components/auth/AuthPage'
+import UpdatePasswordPage from './components/auth/UpdatePasswordPage'
 import NoFarmPage from './components/auth/NoFarmPage'
 import BottomNav from './components/layout/BottomNav'
 import OfflineBanner from './components/layout/OfflineBanner'
@@ -12,7 +13,7 @@ import ReportPage from './pages/ReportPage'
 import SettingsPage from './pages/SettingsPage'
 
 function AppRoutes() {
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, passwordRecovery } = useAuth()
   const { farms, loading: farmLoading } = useFarm()
 
   if (authLoading || farmLoading) {
@@ -23,6 +24,7 @@ function AppRoutes() {
     )
   }
 
+  if (passwordRecovery) return <UpdatePasswordPage />
   if (!user) return <AuthPage />
   if (farms.length === 0) return <NoFarmPage />
 
