@@ -13,7 +13,7 @@ npm run dev            # http://localhost:5173
 
 ## 初次設定
 
-1. 到 Supabase SQL Editor 執行 `supabase/schema.sql`
+1. 到 Supabase SQL Editor 執行 `supabase/schema.sql`，再依序執行 `supabase/migrations/` 內的增量 SQL
 2. 在登入頁註冊第一個帳號
 3. 到 SQL Editor 把自己升級為管理員：
 
