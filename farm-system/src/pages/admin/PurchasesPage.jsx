@@ -8,7 +8,7 @@ export default function PurchasesPage() {
   const [materials, setMaterials] = useState([])
 
   useEffect(() => {
-    supabase.from('materials').select('id, name, unit').eq('is_active', true).order('name')
+    supabase.from('materials').select('id, material_name, unit').eq('is_active', true).order('material_name')
       .then(({ data }) => setMaterials(data || []))
   }, [])
 
@@ -19,7 +19,7 @@ export default function PurchasesPage() {
       orderBy="purchase_date"
       columns={[
         { key: 'purchase_date', label: '採購日期' },
-        { key: 'material', label: '資材', render: r => r.materials?.name },
+        { key: 'material', label: '資材', render: r => r.materials?.material_name },
         { key: 'quantity', label: '數量', render: r => `${r.quantity} ${r.materials?.unit || ''}` },
         { key: 'unit_price', label: '單價', render: r => r.unit_price ? `$${r.unit_price}` : '—' },
         { key: 'supplier', label: '供應商' },
@@ -28,7 +28,7 @@ export default function PurchasesPage() {
       fields={[
         { name: 'purchase_date', label: '採購日期', type: 'date', required: true },
         { name: 'material_id', label: '資材品項', type: 'select', required: true,
-          options: materials.map(m => ({ value: m.id, label: `${m.name}（${m.unit}）` })) },
+          options: materials.map(m => ({ value: m.id, label: `${m.material_name}（${m.unit}）` })) },
         { name: 'quantity', label: '數量', type: 'number', required: true },
         { name: 'unit_price', label: '單價（元）', type: 'number' },
         { name: 'supplier', label: '供應商' },

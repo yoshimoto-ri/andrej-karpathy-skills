@@ -10,7 +10,7 @@ export default function MaterialsPage() {
     <CrudPage
       table="materials" title="資材庫"
       columns={[
-        { key: 'name', label: '名稱' },
+        { key: 'material_name', label: '名稱' },
         { key: 'category', label: '類別', render: r => CATEGORY[r.category] },
         { key: 'unit', label: '單位' },
         { key: 'unit_price', label: '單價', render: r => r.unit_price ? `$${r.unit_price}` : '—' },
@@ -19,7 +19,7 @@ export default function MaterialsPage() {
         { key: 'is_active', label: '狀態', render: r => r.is_active ? '✅ 使用中' : '⛔ 停用' },
       ]}
       fields={[
-        { name: 'name', label: '資材名稱', required: true },
+        { name: 'material_name', label: '資材名稱', required: true },
         { name: 'category', label: '類別', type: 'select', required: true,
           options: Object.entries(CATEGORY).map(([value, label]) => ({ value, label })) },
         { name: 'unit', label: '單位', required: true, placeholder: 'kg / 包 / 瓶 / 張' },
@@ -31,7 +31,7 @@ export default function MaterialsPage() {
         { name: 'notes', label: '備註', type: 'textarea' },
         { name: 'is_active', label: '使用中', type: 'checkbox' },
       ]}
-      orderBy="name" ascending
+      orderBy="material_name" ascending
     />
   )
 }

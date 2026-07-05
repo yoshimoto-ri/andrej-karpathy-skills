@@ -10,13 +10,13 @@
 
 create table if not exists farmers (
   id            uuid primary key default gen_random_uuid(),
-  name          text not null,
+  farmer_name   text not null,
   id_number     text not null unique,   -- 身分證字號
   phone         text,
   email         text,
   farmer_no     text,                   -- 農民編號
   class_ser_no  text,                   -- 產銷班班員編號
-  status        text not null default 'active' check (status in ('active','inactive')),
+  farmer_status text not null default 'active' check (farmer_status in ('active','inactive')),
   notes         text,
   created_at    timestamptz not null default now()
 );

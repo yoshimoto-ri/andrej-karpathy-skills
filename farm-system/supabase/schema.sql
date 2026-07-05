@@ -11,7 +11,7 @@ create extension if not exists "pgcrypto";
 create table if not exists profiles (
   id       uuid primary key references auth.users(id) on delete cascade,
   email    text not null,
-  name     text not null default '',
+  user_name text not null default '',
   role     text not null default 'field_worker'
              check (role in ('admin', 'field_worker', 'sales')),
   is_active boolean not null default true,
@@ -40,7 +40,7 @@ create trigger on_auth_user_created
 
 create table if not exists materials (
   id                  uuid primary key default gen_random_uuid(),
-  name                text not null,
+  material_name       text not null,
   category            text not null
                         check (category in ('fertilizer','pesticide','seed','packaging','label','other')),
   unit                text not null default 'kg',
@@ -76,7 +76,7 @@ create table if not exists material_purchases (
 
 create table if not exists fields (
   id         uuid primary key default gen_random_uuid(),
-  name       text not null,
+  field_name text not null,
   area_sqm   numeric(10,2) not null,   -- 平方公尺
   field_type text not null default 'outdoor'
                check (field_type in ('outdoor','greenhouse')),
@@ -93,7 +93,7 @@ create table if not exists fields (
 create table if not exists crop_types (
   id                  uuid primary key default gen_random_uuid(),
   code                char(1) not null unique,   -- 批號用，A-Z，Admin設定
-  name                text not null,
+  crop_name           text not null,
   growth_days         integer,                   -- 標準生長天數
   expected_yield_kg   numeric(10,3),             -- 預估單位產量（每平方公尺）
   nitrate_limit_ppm   integer,                   -- 硝酸鹽容許值（主婦聯盟）
@@ -119,8 +119,8 @@ create table if not exists contracts (
   payment_terms       text,
   notes               text,
   contract_file_url   text,
-  status              text not null default 'active'
-                        check (status in ('active','completed','cancelled')),
+  contract_status     text not null default 'active'
+                        check (contract_status in ('active','completed','cancelled')),
   created_by          uuid references profiles(id),
   created_at          timestamptz not null default now()
 );
@@ -138,8 +138,8 @@ create table if not exists crop_cycles (
   seedling_source       text,
   quantity_planted      numeric(10,2),                      -- 株數或種子量
   quantity_unit         text default '株',
-  status                text not null default 'growing'
-                          check (status in ('growing','harvested','terminated')),
+  cycle_status          text not null default 'growing'
+                          check (cycle_status in ('growing','harvested','terminated')),
   harvest_locked_until  date,                               -- 施藥後自動填入
   estimated_harvest_date date,                              -- plant_date + growth_days
   termination_reason    text,                               -- 若 terminated 填原因

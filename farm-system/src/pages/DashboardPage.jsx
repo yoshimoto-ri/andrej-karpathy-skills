@@ -16,8 +16,8 @@ export default function DashboardPage() {
       const [fields, materials, cycles, locked] = await Promise.all([
         count('fields', q => q.eq('is_active', true)),
         count('materials', q => q.eq('is_active', true)),
-        count('crop_cycles', q => q.eq('status', 'growing')),
-        count('crop_cycles', q => q.eq('status', 'growing').gte('harvest_locked_until', new Date().toISOString().slice(0, 10))),
+        count('crop_cycles', q => q.eq('cycle_status', 'growing')),
+        count('crop_cycles', q => q.eq('cycle_status', 'growing').gte('harvest_locked_until', new Date().toISOString().slice(0, 10))),
       ])
       setStats({ fields, materials, cycles, locked })
     })()
@@ -34,7 +34,7 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-5">
       <div>
         <h1 className="text-lg font-bold text-gray-800">
-          您好，{profile?.name || profile?.email} 👋
+          您好，{profile?.user_name || profile?.email} 👋
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">{new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}</p>
       </div>

@@ -18,7 +18,7 @@ npm run dev            # http://localhost:5173
 3. 到 SQL Editor 把自己升級為管理員：
 
 ```sql
-update profiles set role = 'admin', name = '你的名字'
+update profiles set role = 'admin', user_name = '你的名字'
 where email = 'your@email.com';
 ```
 

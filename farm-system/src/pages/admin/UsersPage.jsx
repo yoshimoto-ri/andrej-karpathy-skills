@@ -41,7 +41,7 @@ export default function UsersPage() {
             <tbody className="divide-y divide-gray-50">
               {rows.map(r => (
                 <tr key={r.id}>
-                  <td className="td">{r.name || '—'}</td>
+                  <td className="td">{r.user_name || '—'}</td>
                   <td className="td">{r.email}</td>
                   <td className="td">{ROLE_LABEL[r.role]}</td>
                   <td className="td">{r.is_active ? '✅ 啟用' : '⛔ 停用'}</td>
@@ -65,7 +65,7 @@ export default function UsersPage() {
 }
 
 function UserForm({ row, onClose, onSaved }) {
-  const [name, setName] = useState(row.name || '')
+  const [name, setName] = useState(row.user_name || '')
   const [role, setRole] = useState(row.role)
   const [isActive, setIsActive] = useState(row.is_active)
   const [saving, setSaving] = useState(false)
@@ -75,7 +75,7 @@ function UserForm({ row, onClose, onSaved }) {
     e.preventDefault()
     setSaving(true); setError('')
     const { error } = await supabase.from('profiles')
-      .update({ name, role, is_active: isActive }).eq('id', row.id)
+      .update({ user_name: name, role, is_active: isActive }).eq('id', row.id)
     setSaving(false)
     if (error) { setError(error.message); return }
     onSaved()
