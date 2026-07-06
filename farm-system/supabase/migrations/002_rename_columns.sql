@@ -2,25 +2,30 @@
 -- 002: 欄位改名，避免跨表交叉查詢時 name / status 混淆
 --   name   → 實體_name（user/material/field/crop/farmer）
 --   status → 實體_status（cycle/contract/farmer）
--- 適用：已執行過 schema.sql 的專案，於 SQL Editor 貼上執行
+-- 全部條件式執行：舊欄位存在才改名。
+-- （schema.sql 已直接使用新名稱，全新安裝時本檔自動全數略過）
 -- =============================================
 
-alter table profiles    rename column name   to user_name;
-alter table materials   rename column name   to material_name;
-alter table fields      rename column name   to field_name;
-alter table crop_types  rename column name   to crop_name;
-alter table crop_cycles rename column status to cycle_status;
-alter table contracts   rename column status to contract_status;
-
--- farmers 表僅在「已用舊版 001 建立」時才需要改名；
--- 新版 001 直接以 farmer_name / farmer_status 建表，此段會自動略過
-do $$ begin
-  if exists (select 1 from information_schema.columns
-             where table_schema = 'public' and table_name = 'farmers' and column_name = 'name') then
-    alter table farmers rename column name to farmer_name;
-  end if;
-  if exists (select 1 from information_schema.columns
-             where table_schema = 'public' and table_name = 'farmers' and column_name = 'status') then
-    alter table farmers rename column status to farmer_status;
-  end if;
+do $$
+declare
+  r record;
+begin
+  for r in
+    select * from (values
+      ('profiles',    'name',   'user_name'),
+      ('materials',   'name',   'material_name'),
+      ('fields',      'name',   'field_name'),
+      ('crop_types',  'name',   'crop_name'),
+      ('farmers',     'name',   'farmer_name'),
+      ('crop_cycles', 'status', 'cycle_status'),
+      ('contracts',   'status', 'contract_status'),
+      ('farmers',     'status', 'farmer_status')
+    ) as t(tbl, old_col, new_col)
+  loop
+    if exists (select 1 from information_schema.columns
+               where table_schema = 'public'
+                 and table_name = r.tbl and column_name = r.old_col) then
+      execute format('alter table %I rename column %I to %I', r.tbl, r.old_col, r.new_col);
+    end if;
+  end loop;
 end $$;
